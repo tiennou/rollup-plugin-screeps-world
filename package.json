@@ -3,12 +3,15 @@
   "description": "Rollup Plugin for Screeps",
   "license": "MIT",
   "author": "Adam Laycock",
-  "contributors": ["Carson Burke", "Shane Madden"],
+  "contributors": ["Carson Burke", "shanemadden"],
   "repository": {
     "type": "git",
-    "url": "https://github.com/Arcath/rollup-plugin-screeps"
+    "url": "https://github.com/screepers/rollup-plugin-screeps-world"
   },
-  "version": "1.0.2",
+  "bugs": {
+    "url": "https://github.com/screepers/rollup-plugin-screeps-world/issues"
+  },
+  "version": "1.0.3",
   "main": "dist/index.js",
   "module": "dist/es/index.js",
   "scripts": {
