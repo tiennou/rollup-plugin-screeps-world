@@ -2,8 +2,9 @@
 
 ## Install
 
-```
-npm install --save-dev rollup-plugin-screeps
+```sh
+npm install --save-dev rollup-plugin-screeps-world
+
 ```
 
 ## Usage
@@ -11,7 +12,7 @@ npm install --save-dev rollup-plugin-screeps
 In `rollup.config.js`
 
 ```js
-import screeps from "rollup-plugin-screeps";
+import screeps from "rollup-plugin-screeps-world";
 
 ...
 
@@ -24,6 +25,7 @@ export default {
     screeps({configFile: "./screeps.json"})
   ]
 }
+
 ```
 
 ### Config File
@@ -40,6 +42,7 @@ rollup-plugin-screeps needs your screeps username/password and the server to upl
   "path": "/",
   "branch": "auto"
 }
+
 ```
 
 If `branch` is set to `"auto"` rollup-plugin-screeps will use your current git branch as the name of the branch on screeps, if you set it to anything else that string will be used as the name of the branch.
