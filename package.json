@@ -3,11 +3,12 @@
   "description": "Rollup Plugin for Screeps",
   "license": "MIT",
   "author": "Adam Laycock",
+  "contributors": ["Carson Burke", "Shane Madden"],
   "repository": {
     "type": "git",
     "url": "https://github.com/Arcath/rollup-plugin-screeps"
   },
-  "version": "1.0.1",
+  "version": "1.0.2",
   "main": "dist/index.js",
   "module": "dist/es/index.js",
   "scripts": {
@@ -36,6 +37,7 @@
   },
   "keywords": [
     "rollup",
-    "screeps"
+    "screeps",
+    "world"
   ]
 }
