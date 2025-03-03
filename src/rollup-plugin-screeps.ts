@@ -2,7 +2,7 @@ import { ScreepsAPI } from 'screeps-api'
 import * as fs from 'fs'
 import * as git from 'git-rev-sync'
 import * as path from 'path'
-import { Plugin, OutputOptions, SourceDescription, OutputBundle, PluginContext } from 'rollup';
+import { Plugin, OutputOptions, OutputBundle, OutputAsset, } from 'rollup';
 
 
 export interface ScreepsConfig {
@@ -30,33 +30,22 @@ export interface CodeList{
   [key: string]: string | BinaryModule
 }
 
-export function generateSourceMaps(bundle: OutputBundle) {
-  // Iterate through bundle and test if type===chunk && map is defined
-  let itemName: string;
-  for (itemName in bundle) {
-    let item = bundle[itemName];
-    if (item.type === "chunk" && item.map) {
+function fixupSourcemaps(bundle: OutputBundle) {
+  for (const file in bundle) {
+    const item = bundle[file]
+    if (item.type !== "chunk" || !item.map) continue
 
-      // Tweak maps
-      let tmp = item.map.toString;
-    
-      delete item.map.sourcesContent;
-    
-      item.map.toString = function () {
-        return "module.exports = " + tmp.apply(this, arguments as unknown as []) + ";";
-       
-    }
+    // If there's a source map, post-process it
+    // We need to add a .js extension and make it a module
+    // to satisfy the server
+    const sourcemapFile = item.sourcemapFileName!
+    item.sourcemapFileName += ".js"
+    const sourcemap = bundle[sourcemapFile] as OutputAsset
+    delete bundle[sourcemapFile]
+    bundle[item.sourcemapFileName!] = sourcemap
+    sourcemap.fileName += ".js"
+    sourcemap.source = "module.exports = " + sourcemap.source
   }
-
-  }
-
-}
-
-export function writeSourceMaps(options: OutputOptions) {
-  fs.renameSync(
-    options.file + '.map',
-    options.file + '.map.js'
-  )
 }
 
 export function validateConfig(cfg: Partial<ScreepsConfig>): cfg is ScreepsConfig {
@@ -153,12 +142,10 @@ export function screeps(screepsOptions: ScreepsOptions = {}) {
     name: "screeps",
 
     generateBundle(options: OutputOptions, bundle: OutputBundle, isWrite: boolean) {
-      if (options.sourcemap) generateSourceMaps(bundle);
+      if (options.sourcemap) fixupSourcemaps(bundle);
     },
 
-    writeBundle(options: OutputOptions, bundle: OutputBundle) {
-      if (options.sourcemap) writeSourceMaps(options);
-
+    async writeBundle(options: OutputOptions, bundle: OutputBundle) {
       if (!screepsOptions.dryRun) {
         uploadSource((screepsOptions.configFile || screepsOptions.config)!, options, bundle);
       }

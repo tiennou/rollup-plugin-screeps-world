@@ -87,7 +87,12 @@ describe('Rollup Screeps Plugin', () => {
     for (let item of output) {
       if (item.type === "chunk" && item.map) {
 
-        expect(item.map.toString()).toMatch(/^module.exports/)
+        const sourceMap = output.find(i => i.fileName === item.sourcemapFileName!)
+        expect(sourceMap).not.toBeNil()
+        expect(sourceMap?.type).toEqual("asset")
+        if (!sourceMap || sourceMap.type !== "asset") continue;
+
+        expect(sourceMap.source).toMatch(/^module.exports/)
       }
     }
     var basePath = path.join(__dirname, 'dist')
@@ -181,9 +186,7 @@ describe('Rollup Screeps Plugin', () => {
 
     const code = getFileList(outputOpts.file!)
 
-    expect(Object.keys(code).length).toEqual(3)
-    expect(code.main).toMatch(/input/)
-    expect(code['main.js.map']).toMatch(/^module.exports/)
+    expect(Object.keys(code)).toEqual(["main", "main.js.map", "wasm_module"]);
   })
 
   it('should upload WASM files as binary modules', async function() {
