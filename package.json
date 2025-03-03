@@ -15,7 +15,8 @@
   "main": "dist/index.js",
   "module": "dist/es/index.js",
   "scripts": {
-    "prepublishOnly": "rollup -c",
+    "build": "rollup -c",
+    "prepublishOnly": "npm run build && npm run test",
     "test": "mocha -r esm -r ts-node/register tests/**/*.spec.js"
   },
   "dependencies": {
