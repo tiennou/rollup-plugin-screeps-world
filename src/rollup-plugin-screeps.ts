@@ -16,9 +16,11 @@ export interface ScreepsConfig {
   branch: string | "auto"
 }
 
-export interface ScreepsOptions{
+export interface ScreepsOptions {
   configFile?: string
   config?: ScreepsConfig
+  server?: string
+  branch?: string
   dryRun?: boolean
 }
 
@@ -73,30 +75,25 @@ export function validateConfig(cfg: Partial<ScreepsConfig>): cfg is ScreepsConfi
 export function loadConfigFile(configFile: string) {
   let data = fs.readFileSync(configFile, 'utf8')
   let cfg = JSON.parse(data) as Partial<ScreepsConfig>
-  if (!validateConfig(cfg)) throw new TypeError("Invalid config")
   if(cfg.email && cfg.password && !cfg.token && cfg.hostname === 'screeps.com'){ console.log('Please change your email/password to a token') }  
   return cfg;
 }
 
-export function uploadSource(name: string | ScreepsConfig, options: OutputOptions, bundle: OutputBundle) {
-  if (!name) {
-    console.log('screeps() needs a config e.g. screeps({configFile: \'./screeps.json\'}) or screeps({config: { ... }})')
-  } else {
-    let config = typeof name === "string" ? loadConfigFile(name) : name;
-
-    let code = getFileList(options.file!)
-    let branch = getBranchName(config.branch)
-
-    let api = new ScreepsAPI(config)
-
-    if(!config.token){
-      api.auth(config.email, config.password).then(() => {
-        runUpload(api, branch!, code)
-      })
-    }else{
-      runUpload(api, branch!, code)
-    }
+export async function loadApi(opts: ScreepsOptions) {
+  if (opts.config || opts.configFile) {
+    let config = opts.config || loadConfigFile(opts.configFile!)
+    if (!validateConfig(config)) throw new TypeError("Invalid config")
+    const api = new ScreepsAPI(config)
+    if (!config.token) await api.auth(config.email, config.password)
+    return api
   }
+  return ScreepsAPI.fromConfig(opts.server ?? process.env.SCREEPS_SERVER ?? 'main', false, { branch: opts.branch ?? process.env.SCREEPS_BRANCH });
+}
+
+export function uploadSource(api: ScreepsAPI, options: OutputOptions, bundle: OutputBundle) {
+  let code = getFileList(options.file!)
+  let branch = getBranchName((<Record<string, string>>api.opts).branch)
+  runUpload(api, branch!, code)
 }
 
 export function runUpload(api: any, branch: string, code: CodeList){
@@ -127,8 +124,8 @@ export function getFileList(outputFile: string) {
   return code
 }
 
-export function getBranchName(branch: string) {
-  if (branch === 'auto') {
+export function getBranchName(branch: string | undefined) {
+  if (!branch || branch === 'auto') {
     return git.branch()
   } else {
     return branch
@@ -147,7 +144,7 @@ export function screeps(screepsOptions: ScreepsOptions = {}) {
 
     async writeBundle(options: OutputOptions, bundle: OutputBundle) {
       if (!screepsOptions.dryRun) {
-        uploadSource((screepsOptions.configFile || screepsOptions.config)!, options, bundle);
+        uploadSource(await loadApi(screepsOptions), options, bundle);
       }
     }
   } as Plugin;
