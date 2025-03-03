@@ -78,11 +78,11 @@ export function loadConfigFile(configFile: string) {
   return cfg;
 }
 
-export function uploadSource(config: string | ScreepsConfig, options: OutputOptions, bundle: OutputBundle) {
-  if (!config) {
+export function uploadSource(name: string | ScreepsConfig, options: OutputOptions, bundle: OutputBundle) {
+  if (!name) {
     console.log('screeps() needs a config e.g. screeps({configFile: \'./screeps.json\'}) or screeps({config: { ... }})')
   } else {
-    if (typeof config === "string") config = loadConfigFile(config)
+    let config = typeof name === "string" ? loadConfigFile(name) : name;
 
     let code = getFileList(options.file!)
     let branch = getBranchName(config.branch)
@@ -90,7 +90,7 @@ export function uploadSource(config: string | ScreepsConfig, options: OutputOpti
     let api = new ScreepsAPI(config)
 
     if(!config.token){
-      api.auth().then(() => {
+      api.auth(config.email, config.password).then(() => {
         runUpload(api, branch!, code)
       })
     }else{
