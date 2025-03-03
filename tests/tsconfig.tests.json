@@ -1,6 +1,10 @@
 {
     "extends": "../tsconfig.json",
     "compilerOptions": {
+        "module": "ES6",
+        "target": "ES2017",
+        "lib": ["ES2017", "DOM"],
+        "moduleResolution": "node",
         "baseUrl": "./fixtures/main.ts",
         "outDir": "./dist",
         "typeRoots": ["./node_modules/@types","./src"],
